@@ -51,7 +51,7 @@ async function getPictures(currentPage) {
   try {
     const response = await axios.get('https://pixabay.com/api/', {
       params: {
-        key: '22104358-08479b9423ea424bd28360651npm',
+        key: '22104358-08479b9423ea424bd28360651',
         q: input.value,
         image_type: 'photo',
         orientation: 'horizontal',
