@@ -1,5 +1,5 @@
-import axios from 'axios';
 import Notiflix from 'notiflix';
+import axios from 'axios';
 
 const form = document.querySelector('#search-form');
 const input = document.querySelector('#search-form input');
@@ -14,37 +14,22 @@ moreButton.classList.add('hidden');
 
 form.addEventListener('submit', onSubmit);
 
-const debounce = (func, delay) => {
-  let timeoutId;
-  return (...args) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      func.apply(null, args);
-    }, delay);
-  };
-};
-
-const handleSearch = async () => {
+async function onSubmit(event) {
+  event.preventDefault();
   moreButton.classList.add('hidden');
+
   if (input.value === previousValue) {
     currentPage++;
     limit -= 40;
+    console.log(limit);
   } else {
     gallery.innerHTML = '';
     currentPage = 1;
     limit = 500;
   }
+
   await getPictures(currentPage);
   previousValue = input.value;
-};
-
-const throttledSearch = debounce(handleSearch, 300);
-
-function onSubmit(event) {
-  event.preventDefault();
-  throttledSearch();
 }
 
 async function getPictures(currentPage) {
@@ -75,31 +60,30 @@ async function getPictures(currentPage) {
 }
 
 function showPictures(pictures) {
-  const fragment = document.createDocumentFragment();
   pictures.forEach(picture => {
-    const photoCard = document.createElement('div');
-    photoCard.classList.add('photo-card');
-    const img = document.createElement('img');
-    img.src = picture.webformatURL;
-    img.alt = picture.tags;
-    img.loading = 'lazy';
-    const info = document.createElement('div');
-    info.classList.add('info');
-    const infoItems = ['likes', 'views', 'comments', 'downloads'];
-    infoItems.forEach(item => {
-      const p = document.createElement('p');
-      p.classList.add('info-item');
-      p.innerHTML = `<b>${item.charAt(0).toUpperCase() + item.slice(1)}</b>: ${
-        picture[item]
-      }`;
-      info.appendChild(p);
-    });
-    photoCard.appendChild(img);
-    photoCard.appendChild(info);
-    fragment.appendChild(photoCard);
+    const markup = `
+      <div class="photo-card">
+        <img src="${picture.webformatURL}" alt="${picture.tags}" loading="lazy" />
+        <div class="info">
+          <p class="info-item">
+            <b>Likes</b>: ${picture.likes}
+          </p>
+          <p class="info-item">
+            <b>Views</b>: ${picture.views}
+          </p>
+          <p class="info-item">
+            <b>Comments</b>: ${picture.comments}
+          </p>
+          <p class="info-item">
+            <b>Downloads</b>: ${picture.downloads}
+          </p>
+        </div>
+      </div>
+    `;
+
+    gallery.insertAdjacentHTML('beforeend', markup);
+    moreButton.classList.remove('hidden');
   });
-  gallery.appendChild(fragment);
-  moreButton.classList.remove('hidden');
 }
 
 moreButton.addEventListener('click', loadMore);
@@ -116,6 +100,7 @@ async function loadMore() {
       );
     } else {
       limit -= 40;
+      console.log(limit);
     }
   } catch {
     Notiflix.Notify.failure('Failed to load more photos');
